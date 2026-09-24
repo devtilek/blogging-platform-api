@@ -52,6 +52,7 @@ public class PostServiceImpl implements PostService {
         post.setContent(request.getContent());
         post.setCategory(request.getCategory());
         post.setTags(request.getTags());
+        post.setUpdatedAt(java.time.LocalDateTime.now());
 
         return postMapper.toResponse(postRepository.save(post));
     }
