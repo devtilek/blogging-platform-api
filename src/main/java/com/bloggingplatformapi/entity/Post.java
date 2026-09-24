@@ -22,22 +22,38 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column
+    @Column(nullable = false, length = 200)
     private String title;
 
-    @Column
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column
+    @Column(nullable = false, length = 20)
     private String category;
 
-    @Column
     @ElementCollection
+    @CollectionTable(
+            name = "post_tags",
+            joinColumns = @JoinColumn(name = "post_id")
+    )
+    @Column(name = "tag", nullable = false, length = 50)
     private List<String> tags;
 
-    @Column
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
