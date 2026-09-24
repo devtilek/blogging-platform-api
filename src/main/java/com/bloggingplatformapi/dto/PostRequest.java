@@ -8,13 +8,19 @@ import java.util.List;
 
 @Data
 public class PostRequest {
+
     @NotBlank
     @Size(max = 200)
     private String title;
+
     @NotBlank
+    @Size(max = 20_000)
     private String content;
+
     @NotBlank
     @Size(max = 20)
     private String category;
-    private List<String> tags;
+
+    @Size(max = 10)
+    private List<@NotBlank @Size(max = 50) String> tags;
 }
