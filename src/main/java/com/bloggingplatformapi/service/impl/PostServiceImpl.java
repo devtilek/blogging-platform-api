@@ -8,14 +8,16 @@ import com.bloggingplatformapi.mapper.PostMapper;
 import com.bloggingplatformapi.repository.PostRepository;
 import com.bloggingplatformapi.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
@@ -23,58 +25,54 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostResponse getPostById(UUID id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException("Post not found" + id));
-
+        Post post = findPostById(id);
         return postMapper.toResponse(post);
-
     }
 
     @Override
+    @Transactional
     public PostResponse createPost(PostRequest request) {
         Post post = postMapper.toEntity(request);
-
-        post.setCreatedAt(LocalDateTime.now());
-        post.setUpdatedAt(LocalDateTime.now());
-
         Post savedPost = postRepository.save(post);
-
         return postMapper.toResponse(savedPost);
     }
 
     @Override
-    public List<PostResponse> getAllPosts() {
-        return postRepository.findAll()
-                .stream()
-                .map(postMapper::toResponse)
-                .toList();
+    public Page<PostResponse> getAllPosts(Pageable pageable) {
+        return postRepository.findAll(pageable)
+                .map(postMapper::toResponse);
     }
 
     @Override
+    @Transactional
     public PostResponse updatePost(UUID id, PostRequest request) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException("Post not found" + id));
+        Post post = findPostById(id);
+
         post.setTitle(request.getTitle());
         post.setContent(request.getContent());
         post.setCategory(request.getCategory());
         post.setTags(request.getTags());
 
-        post.setUpdatedAt(LocalDateTime.now());
-        Post updatePost = postRepository.save(post);
-        return postMapper.toResponse(updatePost);
+        return postMapper.toResponse(postRepository.save(post));
     }
 
     @Override
+    @Transactional
     public void deletePostById(UUID id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException("Post not found" + id));
+        Post post = findPostById(id);
         postRepository.delete(post);
     }
 
     @Override
-    public List<PostResponse> searchPosts(String term) {
-        return postRepository.searchPost(term)
-                .stream()
-                .map(postMapper::toResponse)
-                .toList();
+    public Page<PostResponse> searchPosts(String term, Pageable pageable) {
+        return postRepository.searchPosts(term.trim(), pageable)
+                .map(postMapper::toResponse);
+    }
+
+    private Post findPostById(UUID id) {
+        return postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException(
+                        "Post not found: " + id
+                ));
     }
 }
