@@ -13,6 +13,7 @@ public class PostResponse {
     private String content;
     private String category;
     private List<String> tags;
+    private String authorEmail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

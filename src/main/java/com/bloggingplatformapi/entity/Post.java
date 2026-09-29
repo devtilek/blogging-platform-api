@@ -39,6 +39,10 @@ public class Post {
     @Column(name = "tag", nullable = false, length = 50)
     private List<String> tags;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User author;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
