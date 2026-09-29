@@ -26,6 +26,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/blogging_platform
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
+      JWT_SECRET_BASE64: ${JWT_SECRET_BASE64:?JWT_SECRET_BASE64 is required}
     ports:
       - "8080:8080"
 
