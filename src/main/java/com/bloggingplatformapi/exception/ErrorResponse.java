@@ -1,10 +1,12 @@
 package com.bloggingplatformapi.exception;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public record ErrorResponse(
         int status,
         String message,
-        LocalDateTime timestamp
+        LocalDateTime timestamp,
+        Map<String, String> errors
 ) {
 }

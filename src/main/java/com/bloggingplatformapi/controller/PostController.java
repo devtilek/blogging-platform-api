@@ -12,6 +12,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.UUID;
 
 @RestController
@@ -27,8 +28,12 @@ public class PostController {
     }
 
     @PostMapping
-    public PostResponse createPost(@Valid @RequestBody PostRequest request) {
-        return postService.createPost(request);
+    public ResponseEntity<PostResponse> createPost(@Valid @RequestBody PostRequest request) {
+        PostResponse response = postService.createPost(request);
+
+        return ResponseEntity
+                .created(URI.create("/posts/" + response.getId()))
+                .body(response);
     }
 
     @PutMapping("/{id}")

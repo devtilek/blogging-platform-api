@@ -13,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -53,9 +52,8 @@ public class PostServiceImpl implements PostService {
         post.setContent(request.getContent());
         post.setCategory(request.getCategory());
         post.setTags(request.getTags());
-        post.setUpdatedAt(LocalDateTime.now());
 
-        return postMapper.toResponse(postRepository.save(post));
+        return postMapper.toResponse(post);
     }
 
     @Override

@@ -1,13 +1,16 @@
 package com.bloggingplatformapi.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -15,26 +18,53 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PostNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handlePostNotFound(PostNotFoundException exception) {
-        return new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                exception.getMessage(),
-                LocalDateTime.now()
-        );
+        return error(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidation(MethodArgumentNotValidException exception) {
-        String message = exception.getBindingResult()
+        Map<String, String> errors = new LinkedHashMap<>();
+
+        exception.getBindingResult()
                 .getFieldErrors()
-                .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
+                .forEach(error -> errors.putIfAbsent(
+                        error.getField(),
+                        error.getDefaultMessage()
+                ));
 
         return new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                LocalDateTime.now(),
+                errors
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
+        return error(
+                HttpStatus.BAD_REQUEST,
+                "Invalid value for parameter: " + exception.getName()
+        );
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDataIntegrityViolation() {
+        return error(
+                HttpStatus.CONFLICT,
+                "The request conflicts with existing data"
+        );
+    }
+
+    private ErrorResponse error(HttpStatus status, String message) {
+        return new ErrorResponse(
+                status.value(),
                 message,
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                Map.of()
         );
     }
 }
